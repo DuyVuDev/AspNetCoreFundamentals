@@ -43,7 +43,23 @@ namespace R2EDuy.AspNetCoreFundamentals.Loggin.middleware
                 context.Response.Body.Seek(0, SeekOrigin.Begin);
 
                 string logMessage = $"[{DateTime.Now}] Schema: {schema}, Host: {host}, Path: {path}, QueryString: {queryString}, Body: {requestBody}, Response: {responseBodyText}\n";
-                await File.AppendAllTextAsync("logs/http_logs.txt", logMessage);
+
+                try
+                {
+                    // Ensure the logs directory exists
+                    var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "logs");
+                    if (!Directory.Exists(logDirectory))
+                    {
+                        Directory.CreateDirectory(logDirectory);
+                    }
+
+                    await File.AppendAllTextAsync(Path.Combine(logDirectory, "http_logs.txt"), logMessage);
+                }
+                catch (Exception ex)
+                {
+                    // Handle any exceptions that occur during logging
+                    Console.WriteLine($"Failed to write log: {ex.Message}");
+                }
 
                 await responseBody.CopyToAsync(originalBodyStream);
             }
